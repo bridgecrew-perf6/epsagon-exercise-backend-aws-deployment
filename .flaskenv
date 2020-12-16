@@ -1,0 +1,4 @@
+FLASK_APP=epsagon_exercise_backend_repo/app/main.py
+FLASK_RUN_HOST=localhost
+FLASK_RUN_PORT=8080
+FLASK_DEBUG=1
