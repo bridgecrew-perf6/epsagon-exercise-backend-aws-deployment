@@ -1,0 +1,14 @@
+version: 0.2
+
+phases:
+  pre_deploy:
+    commands:
+      - echo pre deploy
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+  deploy:
+    commands:
+      - echo Entered the deploy phase...
+      - echo deploying to ecs
+      - docker build -t ${tag}:latest .
+      - docker tag $tag:latest $ecr:$tag
+      - docker push $ecr
