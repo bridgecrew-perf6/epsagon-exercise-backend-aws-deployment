@@ -105,6 +105,11 @@ class Pipeline(core.Stack):
             project_name=f"{props['namespace']}-Docker-Build",
             build_spec=aws_codebuild.BuildSpec.from_source_filename(
                 filename='./epsagon_exercise_backend_repo/pipeline_delivery/docker_build_buildspec.yml'),
+            # build_spec=aws_codebuild.BuildSpec.from_object(
+            #     {
+            #
+            #     }
+            # ),
             environment=aws_codebuild.BuildEnvironment(
                 privileged=True,
             ),

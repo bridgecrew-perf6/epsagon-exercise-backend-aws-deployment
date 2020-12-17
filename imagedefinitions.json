@@ -1,6 +1,6 @@
 [
   {
     "name": "spans-server",
-    "imageUri": "$ecr:$tag"
+    "imageUri": "455154709099.dkr.ecr.us-east-2.amazonaws.com/epsagon-exercise-backend-repo"
   }
 ]
