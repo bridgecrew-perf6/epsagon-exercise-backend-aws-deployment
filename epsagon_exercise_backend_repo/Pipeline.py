@@ -54,32 +54,11 @@ class Pipeline(core.Stack):
                                                     execution_role=execution_role,
                                                     family="spans-server-task-definition")
 
-        # stack = core.Stack(app, "aws-ecs-integ-ecs")
-
-        # task_definition = ecs.Ec2TaskDefinition(
-        #     self, "TaskDef",
-        #     placement_constraints=[
-        #         ecs.PlacementConstraint.distinct_instances()
-        #     ]
-        # )
-
-        # container = task_definition.add_container(
-        #     "spans-server",
-        #     image=ecs.ContainerImage.from_registry(ecr.repository_uri)
-        # )
-
         container = task_definition.add_container(
             "spans-server",
             image=ecs.ContainerImage.from_registry("nginx:latest"),
             memory_limit_mib=256,
         )
-
-        # port_mapping = ecs.PortMapping(
-        #     container_port=80,
-        #     host_port=8080,
-        #     protocol=ecs.Protocol.TCP
-        # )
-        # container.add_port_mappings(port_mapping)
 
         # Create the ECS Service
         service = ecs.FargateService(self,
@@ -88,28 +67,17 @@ class Pipeline(core.Stack):
                                      task_definition=task_definition,
                                      service_name="spans-server-service")
 
-        # service = ecs.Ec2Service(
-        #     self, "Service",
-        #     cluster=cluster,
-        #     task_definition=task_definition,
-        # )
-
-        # service.add_placement_strategies(
-        #     ecs.PlacementStrategy.packed_by(ecs.BinPackResource.MEMORY))
-        # service.add_placement_strategies(
-        #     ecs.PlacementStrategy.spread_across(
-        #         ecs.BuiltInAttributes.AVAILABILITY_ZONE))
+        service.connections.security_groups[0].add_ingress_rule(
+            peer=ec2.Peer.ipv4(vpc.vpc_cidr_block),
+            connection=ec2.Port.tcp(80),
+            description="Allow http inbound from VPC"
+        )
 
         cb_docker_build = aws_codebuild.PipelineProject(
             self, "DockerBuild",
             project_name=f"{props['namespace']}-Docker-Build",
             build_spec=aws_codebuild.BuildSpec.from_source_filename(
                 filename='./epsagon_exercise_backend_repo/pipeline_delivery/docker_build_buildspec.yml'),
-            # build_spec=aws_codebuild.BuildSpec.from_object(
-            #     {
-            #
-            #     }
-            # ),
             environment=aws_codebuild.BuildEnvironment(
                 privileged=True,
             ),
@@ -123,25 +91,6 @@ class Pipeline(core.Stack):
             description='Pipeline for CodeBuild',
             timeout=core.Duration.minutes(60),
         )
-
-        # cb_docker_deploy = aws_codebuild.PipelineProject(
-        #     self, "DockerBuild",
-        #     project_name=f"{props['namespace']}-Docker-Deploy",
-        #     build_spec=aws_codebuild.BuildSpec.from_source_filename(
-        #         filename='pipeline_delivery/docker_deploy_buildspec.yml'),
-        #     environment=aws_codebuild.BuildEnvironment(
-        #         privileged=True,
-        #     ),
-        #     # pass the ecr repo uri into the codebuild project so codebuild knows where to push
-        #     environment_variables={
-        #         'ecr': aws_codebuild.BuildEnvironmentVariable(
-        #             value=ecr.repository_uri),
-        #         'tag': aws_codebuild.BuildEnvironmentVariable(
-        #             value='spans-server')
-        #     },
-        #     description='Pipeline for CodeBuild',
-        #     timeout=core.Duration.minutes(60),
-        # )
 
         ecr.grant_pull_push(cb_docker_build)
 

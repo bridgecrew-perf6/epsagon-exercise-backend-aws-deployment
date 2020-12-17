@@ -1,7 +1,7 @@
 from models.span.filter.filter import SpanFilter
 import pandas as pd
-from epsagon_exercise_backend_repo.models.span.constants import operations
-from epsagon_exercise_backend_repo.models.span.query_methods import tag_query
+from .constants import operations
+from .query_methods import tag_query
 import typing
 
 def get_span(*param_filters: tuple) -> typing.List[dict]:
