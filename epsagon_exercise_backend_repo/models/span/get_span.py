@@ -2,7 +2,7 @@ from models.span.filter.filter import SpanFilter
 import pandas as pd
 
 try:
-    spans = pd.read_json("./../../spans.json")
+    spans = pd.read_json("./spans.json")
 except Exception as e:
     print(e)
     spans = pd.read_json("https://s3.us-west-2.amazonaws.com/secure.notion-static.com/95a4b69e-773f-499a-abd8-528e7d4ea273/spans.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAT73L2G45O3KS52Y5%2F20201214%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20201214T204525Z&X-Amz-Expires=86400&X-Amz-Signature=3fb4ca2cc308a1800d8e8191dcaf31622708ae4101d25a356a41f46668801f0d&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22spans.json%22")

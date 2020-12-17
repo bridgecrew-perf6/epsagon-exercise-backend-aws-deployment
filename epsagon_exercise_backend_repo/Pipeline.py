@@ -29,6 +29,9 @@ class Pipeline(core.Stack):
 
         cluster = ecs.Cluster(self, "MyCluster", vpc=vpc)
 
+        cluster.add_capacity("DefaultAutoScalingGroup",
+                             instance_type=ec2.InstanceType("t2.micro"))
+
         execution_role = iam.Role(self,
                                   "ecs-devops-sandbox-execution-role",
                                   assumed_by=iam.ServicePrincipal("ecs-tasks.amazonaws.com"),
@@ -50,10 +53,33 @@ class Pipeline(core.Stack):
                                                     "spans-server-task-definition",
                                                     execution_role=execution_role,
                                                     family="spans-server-task-definition")
+
+        # stack = core.Stack(app, "aws-ecs-integ-ecs")
+
+        # task_definition = ecs.Ec2TaskDefinition(
+        #     self, "TaskDef",
+        #     placement_constraints=[
+        #         ecs.PlacementConstraint.distinct_instances()
+        #     ]
+        # )
+
+        # container = task_definition.add_container(
+        #     "spans-server",
+        #     image=ecs.ContainerImage.from_registry(ecr.repository_uri)
+        # )
+
         container = task_definition.add_container(
             "spans-server",
-            image=ecs.ContainerImage.from_registry(ecr.repository_uri)
+            image=ecs.ContainerImage.from_registry("nginx:latest"),
+            memory_limit_mib=256,
         )
+
+        # port_mapping = ecs.PortMapping(
+        #     container_port=80,
+        #     host_port=8080,
+        #     protocol=ecs.Protocol.TCP
+        # )
+        # container.add_port_mappings(port_mapping)
 
         # Create the ECS Service
         service = ecs.FargateService(self,
@@ -62,11 +88,23 @@ class Pipeline(core.Stack):
                                      task_definition=task_definition,
                                      service_name="spans-server-service")
 
+        # service = ecs.Ec2Service(
+        #     self, "Service",
+        #     cluster=cluster,
+        #     task_definition=task_definition,
+        # )
+
+        # service.add_placement_strategies(
+        #     ecs.PlacementStrategy.packed_by(ecs.BinPackResource.MEMORY))
+        # service.add_placement_strategies(
+        #     ecs.PlacementStrategy.spread_across(
+        #         ecs.BuiltInAttributes.AVAILABILITY_ZONE))
+
         cb_docker_build = aws_codebuild.PipelineProject(
             self, "DockerBuild",
             project_name=f"{props['namespace']}-Docker-Build",
             build_spec=aws_codebuild.BuildSpec.from_source_filename(
-                filename='pipeline_delivery/docker_build_buildspec.yml'),
+                filename='./epsagon_exercise_backend_repo/pipeline_delivery/docker_build_buildspec.yml'),
             environment=aws_codebuild.BuildEnvironment(
                 privileged=True,
             ),
@@ -153,39 +191,7 @@ class Pipeline(core.Stack):
                     ]
                 )
             ])
-        # fargate_service = ecs_patterns.ApplicationLoadBalancedFargateService(
-        #     self, "MyFargateService",
-        #     cluster=cluster,  # Required
-        #     # cpu=512,  # Default is 256
-        #     # desired_count=6,  # Default is 1
-        #     task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
-        #         image=ecs.ContainerImage.from_registry(
-        #             "$ecr:$tag")),
-        #     # memory_limit_mib=2048,  # Default is 512
-        #     public_load_balancer=True)  # Default is False
 
-        # pipeline.add_stage(
-        #             stage_name="Deploy",
-        #             actions=[
-        #                 aws_codepipeline_actions.EcsDeployAction(
-        #                     action_name="DeployAction",
-        #                     service=fargate_service,
-        #                     input=source_output,
-        #                     deployment_timeout=core.Duration.minutes(60)
-        #                 )
-        #
-        #             ]
-        #         )
-        # give pipelinerole read write to the bucket
-        # props['bucket'].grant_read_write(pipeline.role)
-
-        #pipeline param to get the
-        pipeline_param = aws_ssm.StringParameter(
-            self, "PipelineParam",
-            parameter_name=f"{props['namespace']}-pipeline",
-            string_value=pipeline.pipeline_name,
-            description='cdk pipeline bucket'
-        )
         # cfn output
         core.CfnOutput(
             self, "PipelineOut",

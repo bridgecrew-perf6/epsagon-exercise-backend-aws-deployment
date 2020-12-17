@@ -58,7 +58,6 @@ certifi==2020.12.5
 chardet==3.0.4
 click==7.1.2
 constructs==3.2.72
--e git+https://git-codecommit.us-east-2.amazonaws.com/v1/repos/epsagon-exercise-backend-repo@59a3a9548bf45d58d81559d74018236b2d2b1099#egg=epsagon_exercise_backend_repo
 Flask==1.1.2
 Flask-RESTful==0.3.8
 idna==2.10
