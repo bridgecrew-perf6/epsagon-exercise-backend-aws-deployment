@@ -191,7 +191,7 @@ class Pipeline(core.Stack):
                             # use the `imageFile` property,
                             # and leave out the `input` property
                             # image_file=server_build_output.at_path("imageDef.json"),
-                            deployment_timeout=core.Duration.minutes(60)
+                            deployment_timeout=core.Duration.minutes(10)
                         )
                     ]
                 )
